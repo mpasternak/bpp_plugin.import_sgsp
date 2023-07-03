@@ -54,6 +54,11 @@ class SGSP_Pracownik(models.Model):
 
     pbn_id = models.IntegerField(db_column="pbnauthor")
 
+    badawcze = models.CharField(max_length=2)
+    profil_www = models.TextField()
+    konsultacje = models.TextField()
+    plec = models.CharField(max_length=1)
+
     nowe_nazwisko = models.TextField()
     nowe_nazwisko_data = models.DateField()
 
@@ -172,20 +177,23 @@ class SGSP_Artykul(models.Model):
             # Inna publikacja
             return SGSP_Artykul.get(publicationid=self.parent_id)
 
-        if re.match("\\d\\d\\d\\d-\\d\\d\\d\\d", self.parent_id.strip()):
+        if re.match("\\d\\d\\d\\d-\\d\\d\\d(\\d|X)", self.parent_id.strip()):
             # Zródło
             return SGSP_Journal.objects.get(issn=self.parent_id)
 
         return self.parent_id
 
+    def __str__(self):
+        return str((self.id, self.tytul, self.rok_publikacji, self.parent_id))
+
 
 class SGSP_Artykul_Autor(models.Model):
     id = models.PositiveBigIntegerField(primary_key=True)
-    id_artykulu = models.ForeignKey(
+    artykul = models.ForeignKey(
         SGSP_Artykul, on_delete=models.CASCADE, db_column="id_artykulu"
     )
-    id_atuora = models.ForeignKey(
-        SGSP_Pracownik, on_delete=models.CASCADE, db_column="id_autora"
+    autor = models.ForeignKey(
+        SGSP_Pracownik, on_delete=models.CASCADE, db_column="id_autora", to_field="id"
     )
     kolejnosc = models.PositiveSmallIntegerField()
     obcy = models.BooleanField()
