@@ -90,7 +90,9 @@ def import_komorki(uczelnia, wydzial):
         try:
             jednostka.parent = Jednostka.objects.get(skrot=nadrzedna)
         except Jednostka.DoesNotExist:
-            print(f"[SGSPJ1] Brak jednostki nadrzednej dla kodu {nadrzedna}")
+            warnings.warn(
+                f"[SGSPJ1] Brak jednostki nadrzednej dla kodu {nadrzedna} (potrzebuje go jednostka {jednostka})"
+            )
         jednostka.save()
 
 

@@ -32,4 +32,9 @@ bpp-manage.py sqlsequencereset bpp|grep -v zewnetrzne_bazy_view|grep -v temporar
 echo DELETE FROM denorm_dirtyinstance | psql bpp
 
 # Odbuduj bazę
+echo -n "Odbudowa denormalizacji, to potrwa... "
 bpp-manage.py denorm_rebuild
+echo "zrobione."
+
+# Zrób dump bazy po imporcie
+pg_dump -Fc bpp > post-import-bpp-`date +%Y%m%d%H%M%S`.pgdump
