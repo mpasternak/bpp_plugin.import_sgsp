@@ -705,6 +705,10 @@ def import_pojedynczy_autor(autor_artykulu: SGSP_Artykul_Autor):
             autor.autor_jednostka_set.get_or_create(
                 jednostka=Uczelnia.objects.first().obca_jednostka
             )
+
+            obcy_autor_sgsp.bpp_autor = autor
+            obcy_autor_sgsp.save(update_fields=["bpp_autor"])
+
     else:
         # not autor_artykulu.obcy
 
