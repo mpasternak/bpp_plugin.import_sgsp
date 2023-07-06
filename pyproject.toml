@@ -9,8 +9,8 @@ packages = [
          ]
 
 [tool.poetry.dependencies]
-python = "^3.11"
-bpp-iplweb = "^202306.1103"
+python = ">=3.10"
+bpp-iplweb = ">=202307.1104"
 
 [build-system]
 requires = ["poetry-core"]
