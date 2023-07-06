@@ -1,5 +1,7 @@
 import re
 
+from django.contrib.contenttypes.fields import GenericForeignKey
+from django.contrib.contenttypes.models import ContentType
 from django.db import models
 
 
@@ -10,6 +12,14 @@ class SGSP_Komorka(models.Model):
     usos = models.CharField(max_length=10)
     dydaktyczna = models.BooleanField(db_column="kdydaktyczna")
 
+    bpp_jednostka = models.ForeignKey(
+        "bpp.Jednostka",
+        on_delete=models.SET_NULL,
+        null=True,
+        blank=True,
+        verbose_name="Odpowiednik po stronie BPP",
+    )
+
     def jednostki_nadrzedne(self):
         if not self.sciezka:
             return
@@ -19,7 +29,9 @@ class SGSP_Komorka(models.Model):
 
     class Meta:
         managed = False
-        db_table = "komorki"
+        db_table = "cuvier_komorki"
+        verbose_name = "komórka"
+        verbose_name_plural = "komórki"
 
 
 class SGSP_Pracownik(models.Model):
@@ -62,18 +74,38 @@ class SGSP_Pracownik(models.Model):
     nowe_nazwisko = models.TextField()
     nowe_nazwisko_data = models.DateField()
 
+    bpp_autor = models.ForeignKey(
+        "bpp.Autor",
+        verbose_name="Odpowiednik po stronie BPP",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
     class Meta:
         managed = False
-        db_table = "pracownicy"
+        db_table = "cuvier_pracownicy"
+        verbose_name = "pracownik"
+        verbose_name_plural = "pracownicy"
 
 
 class SGSP_Journal(models.Model):
     issn = models.CharField(max_length=9, unique=True, primary_key=True)
     journal = models.CharField(max_length=512)
 
+    bpp_zrodlo = models.ForeignKey(
+        "bpp.Zrodlo",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+        verbose_name="Odpowiednik po stronie BPP",
+    )
+
     class Meta:
         managed = False
-        db_table = "journals"
+        db_table = "cuvier_journals"
+        verbose_name = "journal"
+        verbose_name_plural = "journale"
 
 
 class SGSP_Journal_Pkt(models.Model):
@@ -83,16 +115,28 @@ class SGSP_Journal_Pkt(models.Model):
 
     class Meta:
         managed = False
-        db_table = "journals_pkt"
+        db_table = "cuvier_journals_pkt"
+        verbose_name = "punkty dla journala"
+        verbose_name_plural = "punkty dla journali"
 
 
 class SGSP_Obcy_Autor(models.Model):
     id = models.PositiveBigIntegerField(primary_key=True)
     name = models.TextField()
 
+    bpp_autor = models.ForeignKey(
+        "bpp.Autor",
+        verbose_name="Odpowiednik po stronie BPP",
+        on_delete=models.SET_NULL,
+        blank=True,
+        null=True,
+    )
+
     class Meta:
         managed = False
         db_table = "cuvier_obcy_autorzy"
+        verbose_name = "obcy autor"
+        verbose_name_plural = "obcy autorzy"
 
 
 class SGSP_Artykul(models.Model):
@@ -165,9 +209,17 @@ class SGSP_Artykul(models.Model):
     pkt = models.PositiveSmallIntegerField()
     force_pkt = models.BooleanField()
 
+    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.SET_NULL, blank=True, null=True
+    )
+    bpp_rekord = GenericForeignKey()
+
     class Meta:
         managed = False
         db_table = "cuvier_artykuly"
+        verbose_name = "artykuł"
+        verbose_name_plural = "artykuły"
 
     def resolve_parent(self):
         if not self.parent_id:
@@ -216,9 +268,17 @@ class SGSP_Artykul_Autor(models.Model):
 
     oswiadczenie = models.BooleanField()
 
+    object_id = models.PositiveIntegerField()
+    content_type = models.ForeignKey(
+        ContentType, on_delete=models.SET_NULL, blank=True, null=True
+    )
+    bpp_rekord = GenericForeignKey()
+
     class Meta:
         managed = False
         db_table = "cuvier_artykul_autor"
+        verbose_name = "autor artykułu"
+        verbose_name_plural = "autorzy artykułów"
 
     def get_ostatni_edytor(self):
         if not self.ostatni_edytor:

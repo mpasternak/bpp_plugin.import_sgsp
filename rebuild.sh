@@ -1,7 +1,7 @@
 #!/bin/bash
 
 # Skasuj i utwórz bazę BPP
-dropdb bpp
+dropdb --force bpp
 createdb bpp
 
 # Uruchom migracje -- utwórz tabele
@@ -16,8 +16,11 @@ bpp-manage.py loaddata ~/Programowanie/bpp-assets/initial_data/bpp.Poziom_Wydawc
 # Utwórz kopię tabel CIA w BPP
 pg_dump cia | psql bpp
 
+# Dodaj do tabel CIA pole 'odpowiednik w BPP'
+cat sql/upgrade_cia_tables.sql | psql bpp
+
 # Utwórz konto superużytkownika
-bpp-manage.py createsuperuser --username admin
+bpp-manage.py createsuperuser --username admin --email michal.dtz@gmail.com
 
 # Utwórz snapshot "czystej" bazy
 pg_dump -Fc bpp> clean-bpp-`date +%Y%m%d%H%M%S`.pgdump
@@ -38,3 +41,6 @@ echo "zrobione."
 
 # Zrób dump bazy po imporcie
 pg_dump -Fc bpp > post-import-bpp-`date +%Y%m%d%H%M%S`.pgdump
+
+# Wystartuj serwer
+bpp-manage.py runserver

@@ -54,12 +54,14 @@ def import_journals():
     journal: SGSP_Journal
     periodyk = Rodzaj_Zrodla.objects.get(id=1)
     for journal in SGSP_Journal.objects.all():
-        Zrodlo.objects.get_or_create(
+        journal.bpp_zrodlo = Zrodlo.objects.get_or_create(
             nazwa=journal.journal,
             skrot=journal.journal,
             issn=journal.issn,
             rodzaj=periodyk,
-        )
+        )[0]
+
+        journal.save(update_fields=["bpp_zrodlo"])
 
 
 def import_komorki(uczelnia, wydzial):
@@ -76,6 +78,9 @@ def import_komorki(uczelnia, wydzial):
         struktura[komorka.id] = komorka.sciezka
 
         Jednostka_Wydzial.objects.get_or_create(jednostka=jednostka, wydzial=wydzial)
+
+        komorka.bpp_jednostka = jednostka
+        komorka.save(update_fields=["bpp_jednostka"])
 
     jednostka: Jednostka
     for jednostka in Jednostka.objects.all():
@@ -122,6 +127,9 @@ def import_users():
             adnotacje=pracownik.konsultacje or "",
             opis=pracownik.profil_www,
         )[0]
+
+        pracownik.bpp_autor = autor
+        pracownik.save(update_fields=["bpp_autor"])
 
         if pracownik.komorka_id is None:
             continue
@@ -176,20 +184,26 @@ def import_users():
             )
 
 
-def znajdz_rekord_po_stronie_bpp(artykul_id: int):
-    try:
-        return Wydawnictwo_Zwarte.objects.get(pk=artykul_id)
-    except Wydawnictwo_Zwarte.DoesNotExist:
-        try:
-            return Wydawnictwo_Ciagle.objects.get(pk=artykul_id)
-        except Wydawnictwo_Ciagle.DoesNotExist:
-            pass
+# def znajdz_rekord_po_stronie_bpp(artykul_id: int):
+#     try:
+#         return Wydawnictwo_Zwarte.objects.get(pk=artykul_id)
+#     except Wydawnictwo_Zwarte.DoesNotExist:
+#         try:
+#             return Wydawnictwo_Ciagle.objects.get(pk=artykul_id)
+#         except Wydawnictwo_Ciagle.DoesNotExist:
+#             pass
+#
 
 
-def importuj_pojedynczy_artykul(artykul: SGSP_Artykul):
-    rekord = znajdz_rekord_po_stronie_bpp(artykul.id)
-    if rekord is not None:
-        return rekord
+def importuj_pojedynczy_artykul(
+    artykul: SGSP_Artykul,
+) -> Wydawnictwo_Zwarte | Wydawnictwo_Ciagle:
+    """
+    :param artykul: artykuł z bazy SGSP/Cuvier
+    :return: zaimportowany rekord po stronie BPP, Wyd. zwarte lub ciągłe
+    """
+    if artykul.object_id is not None:
+        return artykul.bpp_rekord
 
     # Obsługiwane
     #  id                | integer                     |           | not null | nextval('cuvier_artykuly_id_seq'::regcl
@@ -573,6 +587,9 @@ def importuj_pojedynczy_artykul(artykul: SGSP_Artykul):
             jezyk_streszczenia=rekord.jezyk, streszczenie=artykul.abstrakt
         )
 
+    artykul.bpp_rekord = rekord
+    artykul.save(update_fields=["content_type_id", "object_id"])
+
     return rekord
 
 
@@ -605,7 +622,7 @@ def install_uczelnia():
         skupia_pracownikow=False,
     )[0]
     uczelnia.obca_jednostka = obca_jednostka
-    uczelnia.save()
+    uczelnia.save(update_fields=["obca_jednostka"])
 
     wydzial = Wydzial.objects.get_or_create(
         nazwa="Wydział domyślny SGSP", skrot="WdSGSP", uczelnia=uczelnia
@@ -622,7 +639,23 @@ def install_uczelnia():
 
 
 def import_pojedynczy_autor(autor_artykulu: SGSP_Artykul_Autor):
-    rekord = znajdz_rekord_po_stronie_bpp(autor_artykulu.artykul_id)
+    try:
+        artykul = autor_artykulu.artykul
+    except SGSP_Artykul.DoesNotExist:
+        warnings.warn(
+            f"[SGSPXX] baza SGSP zawiera odnośnik do artykułu o ID {autor_artykulu.artykul_id}, "
+            "ale artykułu o takim ID nie ma po stronie bazy SGSP..."
+        )
+        return
+
+    try:
+        rekord = artykul.bpp_rekord
+    except Exception as e:
+        print(e)
+        import pdb
+
+        pdb.set_trace()
+
     if rekord is None:
         obcy = ""
         if autor_artykulu.obcy:
@@ -789,14 +822,17 @@ def import_pojedynczy_autor(autor_artykulu: SGSP_Artykul_Autor):
         else:
             break
 
-    rekord.autorzy_set.get_or_create(
+    wydawnictwo_autor = rekord.autorzy_set.get_or_create(
         autor=autor,
         kolejnosc=kolejnosc,
         afiliuje=afiliuje,
         typ_odpowiedzialnosci=typ_odpowiedzialnosci,
         jednostka=jednostka,
         zapisany_jako=f"{autor.nazwisko} {autor.imiona}".strip(),
-    )
+    )[0]
+
+    autor_artykulu.bpp_rekord = wydawnictwo_autor
+    autor_artykulu.save(update_fields=["object_id", "content_type_id"])
 
 
 def import_artykuly_autorzy():
