@@ -39,6 +39,7 @@ from bpp_plugins.import_sgsp.models import (
     SGSP_Artykul,
     SGSP_Artykul_Autor,
     SGSP_Journal,
+    SGSP_Journal_Pkt,
     SGSP_Komorka,
     SGSP_Obcy_Autor,
     SGSP_Pracownik,
@@ -62,6 +63,15 @@ def import_journals():
         )[0]
 
         journal.save(update_fields=["bpp_zrodlo"])
+
+
+def import_journals_pkt():
+    journal_pkt: SGSP_Journal_Pkt
+    for journal_pkt in SGSP_Journal_Pkt.objects.all():
+        zrodlo = journal_pkt.issn.bpp_zrodlo
+        zrodlo.punktacja_zrodla_set.get_or_create(
+            rok=journal_pkt.rok, punkty_kbn=journal_pkt.pkt
+        )
 
 
 def import_komorki(uczelnia, wydzial):
@@ -844,10 +854,33 @@ def import_artykuly_autorzy():
         import_pojedynczy_autor(autor_artykulu)
 
 
+def ustaw_nadrzedne_osieroconym_rozdzialom_po_isbn():
+    for wydawnictwo_zwarte in Wydawnictwo_Zwarte.objects.filter(
+        charakter_formalny__skrot="ROZ", wydawnictwo_nadrzedne_id=None
+    ):
+        try:
+            wydawnictwo_zwarte.wydawnictwo_nadrzedne = Wydawnictwo_Zwarte.objects.get(
+                isbn=wydawnictwo_zwarte.isbn, charakter_formalny__skrot="KS"
+            )
+            wydawnictwo_zwarte.save(update_fields=["wydawnictwo_nadrzedne"])
+        except Wydawnictwo_Zwarte.MultipleObjectsReturned:
+            warnings.warn(
+                f"[SGSPN2] Nie udało się określić wydawnictwa nadrzędnego po ISBN {wydawnictwo_zwarte.isbn} "
+                f"dla rekordu {wydawnictwo_zwarte}, ponieważ ten ISBN ma więcej niż jedna książka!"
+            )
+
+        except Wydawnictwo_Zwarte.DoesNotExist:
+            warnings.warn(
+                f"[SGSPN1] Nie udało się określić wydawnictwa nadrzędnego po ISBN {wydawnictwo_zwarte.isbn} "
+                f"dla rekordu {wydawnictwo_zwarte}"
+            )
+
+
 def import_sgsp_db():
     patch_database()
 
     import_journals()
+    import_journals_pkt()
 
     uczelnia, wydzial = install_uczelnia()
     import_komorki(uczelnia=uczelnia, wydzial=wydzial)
@@ -862,6 +895,8 @@ def import_sgsp_db():
     Wydawnictwo_Ciagle_Autor.objects.all().delete()
     Wydawnictwo_Zwarte_Autor.objects.all().delete()
     import_artykuly_autorzy()
+
+    ustaw_nadrzedne_osieroconym_rozdzialom_po_isbn()
 
     print(
         "Don't forget to execute:\n\t"

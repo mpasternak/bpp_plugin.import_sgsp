@@ -17,6 +17,10 @@ class ReadonlyModelAdmin(ReadonlyAdminMixin, admin.ModelAdmin):
 @admin.register(SGSP_Pracownik)
 class SGSP_PracownikAdmin(ReadonlyModelAdmin):
     list_display = ["nazwisko", "imie", "email", "email_sgsp", "komorka"]
+    list_filter = [
+        "komorka",
+        ("bpp_autor", admin.EmptyFieldListFilter),
+    ]
     search_fields = [
         "nazwisko",
         "imie",
@@ -30,19 +34,28 @@ class SGSP_PracownikAdmin(ReadonlyModelAdmin):
 @admin.register(SGSP_Komorka)
 class SGSP_KomorkaAdmin(ReadonlyModelAdmin):
     list_display = ["nazwa", "sciezka", "usos"]
-    list_filter = ["dydaktyczna"]
+    list_filter = [
+        "dydaktyczna",
+        ("bpp_jednostka", admin.EmptyFieldListFilter),
+    ]
     search_fields = list_display
 
 
 @admin.register(SGSP_Obcy_Autor)
 class SGSP_Obcy_AutorAdmin(ReadonlyModelAdmin):
     list_display = ["name"]
+    list_filter = [
+        ("bpp_autor", admin.EmptyFieldListFilter),
+    ]
     search_fields = list_display
 
 
 @admin.register(SGSP_Journal)
 class SGSP_JournalAdmin(ReadonlyModelAdmin):
     list_display = ["journal", "issn", "bpp_zrodlo"]
+    list_filter = [
+        ("bpp_zrodlo", admin.EmptyFieldListFilter),
+    ]
     search_fields = list_display
 
 
@@ -64,5 +77,11 @@ class SGSP_ArtykulAdmin(ReadonlyModelAdmin):
     ]
 
     search_fields = list_display
-    list_filter = ["rok_publikacji", "jezyk", "wersja", "licencja"]
+    list_filter = [
+        "rok_publikacji",
+        "jezyk",
+        "wersja",
+        "licencja",
+        ("content_type", admin.EmptyFieldListFilter),
+    ]
     inlines = [SGSP_Artykul_AutorInline]
