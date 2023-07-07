@@ -76,7 +76,10 @@ class SGSP_ArtykulAdmin(ReadonlyModelAdmin):
         "bpp_rekord",
     ]
 
-    search_fields = list_display
+    search_fields = list_display[:-1] + [
+        "sgsp_artykul_autor__autor__nazwisko",
+        "sgsp_artykul_autor__autor__imie",
+    ]
     list_filter = [
         "rok_publikacji",
         "jezyk",
