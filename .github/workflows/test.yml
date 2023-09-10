@@ -66,4 +66,9 @@ jobs:
         POSTGRES_PASSWORD: postgres
         POSTGRES_USER: postgres
         POSTGRES_PORT: 5432
+        DJANGO_BPP_DB_USER: postgres
+        DJANGO_BPP_DB_PASSWORD: postgres
+        DJANGO_BPP_DB_HOST: postgres
+        DJANGO_BPP_DB_PORT: postgres
+        
   
