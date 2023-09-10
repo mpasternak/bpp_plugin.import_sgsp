@@ -65,6 +65,7 @@ jobs:
 
     - name: Pytest tests
       run: |
+        echo "CREATE EXTENSION pg_trgm;" | psql test_bpp
         poetry run pytest
       env:
         POSTGRES_HOST: localhost
