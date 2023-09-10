@@ -27,7 +27,8 @@ class SGSP_PracownikAdmin(ReadonlyModelAdmin):
         "email",
         "email_sgsp",
         "komorka__nazwa",
-        "komorka__skrot",
+        "komorka__bpp_jednostka__nazwa",
+        "komorka__bpp_jednostka__skrot",
     ]
 
 
@@ -56,7 +57,7 @@ class SGSP_JournalAdmin(ReadonlyModelAdmin):
     list_filter = [
         ("bpp_zrodlo", admin.EmptyFieldListFilter),
     ]
-    search_fields = list_display
+    search_fields = ["journal", "issn", "bpp_zrodlo__nazwa", "bpp_zrodlo__skrot"]
 
 
 class SGSP_Artykul_AutorInline(admin.TabularInline):

@@ -318,3 +318,9 @@ class Cuvier_Liczba_N(models.Model):
         decimal_places=2,
         help_text="Maksymalna liczba slotów dla danej osoby",
     )
+
+    class Meta:
+        managed = False
+        db_table = "cuvier_liczba_n"
+        verbose_name = "liczba N"
+        verbose_name_plural = "liczby N"

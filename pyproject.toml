@@ -9,7 +9,7 @@ packages = [
          ]
 
 [tool.poetry.dependencies]
-python = ">=3.10"
+python = ">=3.10,<4"
 bpp-iplweb = ">=202307.1104"
 
 [build-system]
