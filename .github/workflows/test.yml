@@ -11,6 +11,7 @@ jobs:
         image: postgres
         env:
           POSTGRES_PASSWORD: postgres
+          POSTGRES_INITDB_ARGS="--locale-provider=icu --icu-locale=pl_PL.UTF-8"
         options: >-
           --health-cmd pg_isready
           --health-interval 10s
