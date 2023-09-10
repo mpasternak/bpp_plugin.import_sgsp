@@ -69,6 +69,6 @@ jobs:
         DJANGO_BPP_DB_USER: postgres
         DJANGO_BPP_DB_PASSWORD: postgres
         DJANGO_BPP_DB_HOST: postgres
-        DJANGO_BPP_DB_PORT: postgres
+        DJANGO_BPP_DB_PORT: 5432
         
   
