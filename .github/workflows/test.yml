@@ -16,6 +16,9 @@ jobs:
           --health-interval 10s
           --health-timeout 5s
           --health-retries 5
+        ports:
+          # Maps tcp port 5432 on service container to the host
+          - 5432:5432
           
     strategy:
       fail-fast: false
@@ -62,13 +65,13 @@ jobs:
       run: |
         poetry run pytest
       env:
-        POSTGRES_HOST: postgres
+        POSTGRES_HOST: localhost
         POSTGRES_PASSWORD: postgres
         POSTGRES_USER: postgres
         POSTGRES_PORT: 5432
         DJANGO_BPP_DB_USER: postgres
         DJANGO_BPP_DB_PASSWORD: postgres
-        DJANGO_BPP_DB_HOST: postgres
+        DJANGO_BPP_DB_HOST: localhost
         DJANGO_BPP_DB_PORT: 5432
         
   
