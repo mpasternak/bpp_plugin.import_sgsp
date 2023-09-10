@@ -37,6 +37,10 @@ jobs:
       run: |
         python -m pip install --upgrade pip
         python -m pip install --upgrade poetry
+        
+    - name: install stuff required to build python-ldap
+      run: |
+          sudo apt install -y libsasl2-dev python3-dev libldap2-dev libssl-dev
 
     - name: Setup environment
       run: |
